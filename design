@@ -1,0 +1,23 @@
+master监控 + worker每个房间实例
+
+必须版本检测，低版本无法游戏
+
+允许游客（临时账号）
+
+房间人数？
+
+3人一组，分职业 坦克 输出 奶（自由选择，可以奶 + 奶 + 奶）
+/ 生化模式 -》以撒的结合视角
+
+每组之间颜色不同（光晕？）
+
+搜索空闲房间,master保存每个房间信息
+每个账号对应userkey
+master告诉slave有效的userkey
+master告诉客户端房间worker的ip、端口，以及给客户端分配的可过期userkey
+
+|
+client -> worker:初始化流程，自己的key，请求加入游戏
+worker -> client:认证成功，返回
+worker生成出生点返回给client
+worker
