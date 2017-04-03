@@ -46,19 +46,19 @@ setInterval(
 net.on('message', (message, remote) => {
     console.log(remote.address + ':' + remote.port + ' - ' + message);
     if (message == 'w') {
-        player.speed.y = 10
+        player.speed.y = 3
         player.speed.x = 0
     }
     if (message == 's') {
-        player.speed.y = -10
+        player.speed.y = -3
         player.speed.x = 0
     }
     if (message == 'a') {
         player.speed.y = 0
-        player.speed.x = -10
+        player.speed.x = -3
     }
     if (message == 'd') {
         player.speed.y = 0
-        player.speed.x = 10
+        player.speed.x = 3
     }
 })
