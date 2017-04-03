@@ -12,6 +12,9 @@ var netRate = 30
 var lastTime = Date.now()
 var lastLogTime = lastTime
 
+var clientIp = undefined
+var clientPort = undefined
+
 // temp = console.log
 // console.log = (msg) => {
 //     var between = Date.now() - lastLogTime
@@ -33,18 +36,23 @@ setInterval(
 
 setInterval(
     () => {
+        if (!(clientIp || clientPort)) {
+            return
+        }
         var message = ''
         message += player.position.x + ','
         message += player.position.y + ','
         message += player.speed.x + ','
         message += player.speed.y + ','
-        net.send(Buffer.from(message), 4000, '127.0.0.1')
+        net.send(Buffer.from(message), clientPort, clientIp)
     },
     1000 / netRate
 )
 
 net.on('message', (message, remote) => {
     console.log(remote.address + ':' + remote.port + ' - ' + message);
+    clientIp = remote.address
+    clientPort = remote.port
     if (message == 'w') {
         player.speed.y = 3
         player.speed.x = 0
