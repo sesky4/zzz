@@ -12,15 +12,15 @@ var netRate = 30
 var lastTime = Date.now()
 var lastLogTime = lastTime
 
-temp = console.log
-console.log = (msg) => {
-    var between = Date.now() - lastLogTime
-    if (between > 1000) {
-        temp(between)
-        temp(msg)
-        lastLogTime = Date.now()
-    }
-}
+// temp = console.log
+// console.log = (msg) => {
+//     var between = Date.now() - lastLogTime
+//     if (between > 1000) {
+//         temp(between)
+//         temp(msg)
+//         lastLogTime = Date.now()
+//     }
+// }
 
 setInterval(
     () => {
