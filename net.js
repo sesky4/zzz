@@ -1,19 +1,25 @@
-var PORT = 3000;
-var HOST = '0.0.0.0';
-
 var dgram = require('dgram')
-var server = dgram.createSocket('udp4')
 
-server.on('listening', function () {
-    var address = server.address();
-    console.log('UDP Server listening on ' + address.address + ":" + address.port);
-});
+function net(host, port) {
+    var socket = dgram.createSocket('udp4')
+    socket.bind(port, host)
+    this.socket = socket
 
-// server.on('message', function (message, remote) {
-//     console.log(remote.address + ':' + remote.port + ' - ' + message);
+    socket.on('listening', function () {
+        var address = socket.address();
+        console.log('UDP Server listening on ' + address.address + ":" + address.port);
+    });
 
-// });
+    this.on = function (event, listener) {
+        socket.on(event, listener)
+    }
 
-server.bind(PORT, HOST);
+    this.send = function (data, ip, port) {
+        socket.send(data, ip, port)
+    }
 
-module.exports = server
+    this.address = function () {
+        return socket.address()
+    }
+}
+module.exports = net

@@ -21,3 +21,25 @@ client -> worker:初始化流程，自己的key，请求加入游戏
 worker -> client:认证成功，返回
 worker生成出生点返回给client
 worker
+
+c2s：
+0->move
+1->fire 
+
+s2c:
+0->player movement
+1->bullet movement
+2->food movement
+3->leader board
+4->player dead
+5->game start
+6->game end
+
+
+人：武器
+僵尸：武器（默认只有爪）
+
+人： 人 僵尸
+武器： 各种武器
+子弹： 各种武器对应的子弹
+补给： 各种武器

@@ -35,7 +35,7 @@ function Player(tag = undefined) {
         this.speed.x += this.accelerate.x * dt
         this.speed.y += this.accelerate.y * dt
 
-        // console.log(this.position)
+        console.log(this.speed)
     }
 }
 
