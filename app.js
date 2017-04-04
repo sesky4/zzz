@@ -8,7 +8,7 @@ game.addPlayer(player)
 global.allCaculationTimes = 0
 
 var updateRate = 30
-var netRate = 30
+var netRate = 10
 var lastTime = Date.now()
 var lastLogTime = lastTime
 
@@ -45,6 +45,8 @@ setInterval(
         message += player.speed.x + ','
         message += player.speed.y + ','
         net.send(Buffer.from(message), clientPort, clientIp)
+
+
     },
     1000 / netRate
 )
