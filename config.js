@@ -4,6 +4,7 @@ var config = {
     DELIMITER: ',',
     VERSION: '1.0.0',
     MAGIC_NUMBER: 'ZZZ',
+    INTERNET_ADDRESS: '127.0.0.1',
     ERROR: {
         VERSION_MISSMATCH: 1,
         WRONG_PACKET: 2,
@@ -19,11 +20,8 @@ var config = {
     GAME_UPDATE_RATE: 60,
     NET_UPDATE_RATE: 60,
     PLAYER: {
-        SPEED: {
-            MAX: 5
-        }
+        MAX_SPEED: 5
     }
 }
 
 module.exports = config
-console.log(Math.pow(3, 0.5))

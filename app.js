@@ -98,7 +98,6 @@ masterServer.on('message', (message, remote) => {
 
         for (var i in rooms) {
             var room = rooms[i]
-
             if (room.canJoin()) {
                 room.preAddPlayer(request.userKey)
 

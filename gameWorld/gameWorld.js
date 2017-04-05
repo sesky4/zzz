@@ -1,11 +1,13 @@
 function gameWorld() {
-    this.startTime = Date.now();
-    this.map = {
+    var startTime = Date.now()
+    var map = {
         width: 5000,
         height: 5000
     }
-    this.players = [];
-    this.objects = [];
+    var players = [];
+    var objects = [];
+
+    this.eventListener = {}
 
     this.update = function (dt) {
         for (var index in this.players) {
@@ -35,6 +37,13 @@ function gameWorld() {
             return null
         }
     }
+
+    this.on = ((event, listener) => {
+        if (!eventListener[event]) {
+            eventListener[event] = []
+        }
+        eventListener[event].push(listener)
+    }).bind(this)
 }
 
 module.exports = gameWorld
