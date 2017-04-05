@@ -1,7 +1,7 @@
-var gameworld = require('../gameWorld/gameWorld')
-var Player = require('../gameWorld/player')
-var net = require('../net')
-var PlayerClient = require('../playerClient/playerClient')
+var gameworld = require('../game/gameWorld')
+var Player = require('../game/player')
+var net = require('./net')
+var PlayerClient = require('./playerClient')
 var config = require('../config')
 
 function gameroom(callback) {

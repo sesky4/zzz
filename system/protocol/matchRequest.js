@@ -1,8 +1,8 @@
-var config = require('../config')
+var config = require('../../config')
 
 function parseMatchRequest(data) {
 
-    var arr = data.split(config.DELIMITER)
+    var arr = data.toString().split(config.DELIMITER)
 
     if (arr[0] != config.MAGIC_NUMBER) {
         return config.ERROR.WRONG_PACKET
