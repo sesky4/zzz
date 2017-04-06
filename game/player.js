@@ -1,4 +1,4 @@
-function Player(tag = undefined) {
+function Player(tag) {
     this.tag = tag
 
     this.position = {

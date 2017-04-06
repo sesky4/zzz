@@ -1,31 +1,65 @@
 var tcp = require('./net')
 var config = require('../config')
 var parseMatchRequest = require('./protocol/matchRequest')
+var newGameRoom = require('./gameRoom')
 
-module.exports = function (port, newPlayerListener) {
+function gameMatcher(port, rooms, matchListener) {
+    // matchListener(player, room)
     var net = new tcp(port)
     net.newConnection((c) => {
         c.on('data', (msg) => {
-            var request = parseMatchRequest(msg)
-            if (!request) {
-                return
-            }
-            if (request == config.ERROR.WRONG_PACKET) {
-                c.write('WRONG_PACKET')
-                return
-            }
-            if (request == config.ERROR.VERSION_MISSMATCH) {
-                c.write('VERSION_MISSMATCH')
-                return
-            }
+            vaildMatchRequest(msg, (req, err) => {
+                if (err) {
+                    c.write(err)
+                    return
+                }
 
-            var player = {
-                socket: c,
-                userKey: request.userKey
-            }
-            newPlayerListener(player)
+                var user = {
+                    socket: c,
+                    userKey: req.userKey
+                }
+
+                var room = findAvailableRoom(rooms)
+                if (!room) {
+                    newGameRoom(() => {
+                        console.log('create new room')
+                        matchListener(user, this)
+                    })
+                } else {
+                    console.log('find exist room')
+                    matchListener(user, room)
+                }
+            })
         })
     })
 
-    return this
+    function vaildMatchRequest(msg, callback) {
+        // callback(request, err)
+        var request = parseMatchRequest(msg)
+        if (!request) {
+            callback(null, 'WRONG_PACKET')
+            return
+        }
+        if (request == config.ERROR.WRONG_PACKET) {
+            callback(null, 'WRONG_PACKET')
+            return
+        }
+        if (request == config.ERROR.VERSION_MISSMATCH) {
+            callback(null, 'VERSION_MISSMATCH')
+            return
+        }
+        callback(request, null)
+    }
+
+    function findAvailableRoom(rooms) {
+        for (var i in rooms) {
+            var room = rooms[i]
+            if (room.canJoin()) {
+                return room
+            }
+        }
+        return null
+    }
 }
+
+module.exports = gameMatcher

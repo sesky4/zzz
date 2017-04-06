@@ -10,6 +10,7 @@ function gameWorld() {
     this.eventListener = {}
 
     this.update = function (dt) {
+        console.log(dt)
         for (var index in this.players) {
             var player = this.players[index]
             player.updatePosition(dt, this.map)

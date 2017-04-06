@@ -1,96 +1,55 @@
 var gameworld = require('../game/gameWorld')
 var Player = require('../game/player')
-var net = require('./net')
+var tcp = require('./net')
 var PlayerClient = require('./playerClient')
 var config = require('../config')
 
 function gameroom(callback) {
+    var playerClients = []
 
-    this.clients = []
-    this.net = new net('0.0.0.0', 0)
-    this.netUpdateRate = config.NET_UPDATE_RATE
+    var net = new tcp(0)
 
-    this.gameWorld = new gameworld()
-    this.MAX_PLAYER = 2
-    this.clientUpdateRate = 10
-    this.gameUpdateRate = config.GAME_UPDATE_RATE
-
+    var gameWorld = new gameworld()
     var lastGameTick = Date.now()
+    var isRunning = false
 
-    setInterval(() => {
-        var dt = Date.now() - lastGameTick
-        this.gameWorld.update(dt)
-        lastGameTick = Date.now()
-    }, 1000 / this.gameUpdateRate)
-
-
-    this.net.on('listening', function () {
-        callback()
-    });
-
-    function handleMove(msg) {
-        var player = this.getClientByKey(msg[3]).player
-        var speedX = parseFloat(msg[4])
-        var speedY = parseFloat(msg[5])
-        var squareSum = speedX * speedX + speedY * speedY
-        var mod = Math.pow(squareSum, 0.5)
-        player.speed.x = speedX / mod * config.PLAYER.MAX_SPEED
-        player.speed.y = speedY / mod * config.PLAYER.MAX_SPEED
+    this.startGame = function () {
+        if (!isRunning) {
+            setInterval(() => {
+                var dt = Date.now() - lastGameTick
+                gameWorld.update(dt)
+                lastGameTick = Date.now()
+            }, 1000 / config.GAME_UPDATE_RATE)
+            isRunning = true
+        }
     }
 
-    // function handleMessage(message, remote) {
-    //     var msg = message.toString().split(config.DELIMITER)
-    //     var key = msg[3]
-    //     var client = this.getClientByKey(key)
-    //     if (!client) {
-    //         return
-    //     }
-    //     client.host = remote.address
-    //     client.port = remote.port
-
-    //     switch (parseInt(msg[2])) {
-    //         case config.REQUEST.PLAYER_MOVE:
-    //             handleMove.bind(this)(msg)
-    //             break;
-    //         case config.REQUEST.PLAYER_FIRE:
-    //             handleFire.bind(this)(msg)
-    //             break;
-    //     }
-    //     this.net.send(Buffer.from('qwe'), remote.port, remote.addresss)
-    // }
-
-    // this.net.on('message', handleMessage.bind(this));
-
-    this.preAddPlayer = function (userKey) {
-        var client = new PlayerClient(userKey)
-        client.connectToGameWorld(this.gameWorld)
-        this.clients[userKey] = client
-
-        var player = new Player(userKey)
-        this.gameWorld.addPlayer(player)
+    this.preAddUser = function (user) {
+        var client = new PlayerClient(user)
+        client.connectToGameWorld(gameWorld)
+        playerClients[user.userKey] = client
     }
 
     this.canJoin = function () {
-        return this.clients.length < this.MAX_PLAYER
+        var length = 0
+        for (key in playerClients) {
+            length++
+        }
+        return length < config.GAMEROOM.MAX_PLAYER
     }
-
-    // this.getClientByKey = function (userKey) {
-    //     for (var i in this.clients) {
-    //         var client = this.clients[i]
-    //         if (client.userKey == userKey) {
-    //             return client
-    //         }
-    //     }
-    //     return null
-    // }
 
     this.getAddress = function () {
         var address = {
             host: config.INTERNET_ADDRESS,
-            port: this.net.address().port
+            port: net.address().port
         }
         return address
     }
+
+    // used as callback because it can't get address immediately    
+    net.on('listening', (function () {
+        callback()
+    }).bind(this));
 }
 
 module.exports = gameroom

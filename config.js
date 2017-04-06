@@ -21,6 +21,10 @@ var config = {
     NET_UPDATE_RATE: 60,
     PLAYER: {
         MAX_SPEED: 5
+    },
+    GAMEROOM: {
+        MAX_PLAYER: 2
+
     }
 }
 

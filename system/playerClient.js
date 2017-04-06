@@ -37,3 +37,5 @@ function playerClient(socket) {
     }
 
 }
+
+module.exports = playerClient
