@@ -1,5 +1,5 @@
 module.exports = function (game) {
-    var listeners = {}
+    // var listeners = {}
 
     this.on = function (event, listener) {
         // if (!listeners[event]) {
