@@ -1,9 +1,5 @@
-var a = {
-    a: 1,
-    a: 1,
-    a: 1,
-    a: 1,
-    a: 1
-}
+var uuid = require('uuid/v4')
 
-console.log(a.size())
+console.log(uuid())
+console.log(uuid())
+console.log(uuid())

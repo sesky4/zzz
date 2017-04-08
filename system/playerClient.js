@@ -1,40 +1,77 @@
-function playerClient(socket) {
+var playerConnector = require('./playerConnector')
+var gameConnector = require('./gameConnector')
+var uuid = require('uuid/v4')
+var player = require('../game/player')
 
-    this.playerBirth = function () {
 
-    }
+function playerClient(user) {
+    this.user = user
 
-    this.playerMove = function () {
+    this.remoteConnector = new playerConnector(user.socket)
 
-    }
+    this.gameConnector = null
 
-    this.playerFire = function () {
+    this.gameWorld = null
 
-    }
+    this.connectToGameWorld = (function (gameworld) {
+        this.gameWorld = gameworld
+        this.gameConnector = new gameConnector(gameworld)
 
-    this.playerDead = function () {
+        // gameworld message
+        this.gameConnector.on('playerJoin', ((data) => {
+            console.log('playerJoin')
+        }).bind(this))
 
-    }
+        this.gameConnector.on('playerBirth', ((data) => {
 
-    this.bulletBirth = function () {
+        }).bind(this))
 
-    }
+        this.gameConnector.on('playerFire', ((data) => {
 
-    this.bulletDestory = function () {
+        }).bind(this))
 
-    }
+        this.gameConnector.on('playerDead', ((data) => {
 
-    this.foodBirth = function () {
+        }).bind(this))
 
-    }
+        this.gameConnector.on('foodBirth', ((data) => {
 
-    this.foodDestory = function () {
+        }).bind(this))
 
-    }
+        this.gameConnector.on('foodDestory', ((data) => {
 
-    this.connectToGameWorld = function (gameworld) {
+        }).bind(this))
 
-    }
+        this.gameConnector.on('bulletBirth', ((data) => {
+
+        }).bind(this))
+
+        this.gameConnector.on('bulletDestory', ((data) => {
+
+        }).bind(this))
+    }).bind(this)
+
+    // player control message    
+    this.remoteConnector.on('playerJoin', ((data) => {
+        var id = uuid()
+        this.user.id = id
+        var p = new player(id)
+        this.gameWorld.addPlayer(p)
+    }).bind(this))
+
+    this.remoteConnector.on('playerMove', ((data) => {
+
+    }).bind(this))
+
+    this.remoteConnector.on('playerFire', ((data) => {
+
+    }).bind(this))
+
+    this.remoteConnector.on('playerLeft', ((data) => {
+
+    }).bind(this))
+
+
 
 }
 

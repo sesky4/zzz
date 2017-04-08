@@ -10,7 +10,7 @@ function gameWorld() {
     this.eventListener = {}
 
     this.update = function (dt) {
-        console.log(dt)
+        // console.log(dt)
         for (var index in this.players) {
             var player = this.players[index]
             player.updatePosition(dt, this.map)
@@ -18,7 +18,8 @@ function gameWorld() {
     }
 
     this.addPlayer = function (player) {
-        this.players.push(player)
+        players.push(player)
+        this.triggerEvent('playerJoin', player)
     }
 
     this.getPlayerByTag = function (tag) {
@@ -39,11 +40,20 @@ function gameWorld() {
         }
     }
 
-    this.on = ((event, listener) => {
-        if (!eventListener[event]) {
-            eventListener[event] = []
+    this.on = (function (event, listener) {
+        if (!this.eventListener[event]) {
+            this.eventListener[event] = []
         }
-        eventListener[event].push(listener)
+        this.eventListener[event].push(listener)
+    }).bind(this)
+
+    this.triggerEvent = (function (event, data) {
+        if (this.eventListener[event]) {
+            // call them
+            for (var eventId in this.eventListener[event]) {
+                this.eventListener[event][eventId](data)
+            }
+        }
     }).bind(this)
 }
 

@@ -1,5 +1,5 @@
-function Player(tag) {
-    this.tag = tag
+function Player(id) {
+    this.id = id
 
     this.position = {
         x: 0,

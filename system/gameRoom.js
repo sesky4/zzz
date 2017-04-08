@@ -25,14 +25,16 @@ function gameroom(callback) {
     }
 
     this.preAddUser = function (user) {
-        var client = new PlayerClient(user)
-        client.connectToGameWorld(gameWorld)
-        playerClients[user.userKey] = client
+        if (!playerClients[user.userKey]) {
+            var client = new PlayerClient(user)
+            client.connectToGameWorld(gameWorld)
+            playerClients[user.userKey] = client
+        }
     }
 
     this.canJoin = function () {
         var length = 0
-        for (key in playerClients) {
+        for (var key in playerClients) {
             length++
         }
         return length < config.GAMEROOM.MAX_PLAYER

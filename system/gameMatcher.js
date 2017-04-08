@@ -23,10 +23,17 @@ function gameMatcher(port, rooms, matchListener) {
                 if (!room) {
                     newGameRoom(() => {
                         console.log('create new room')
+
+                        this.startGame()
+                        rooms.push(this)
+
+                        this.preAddUser(user)
                         matchListener(user, this)
                     })
                 } else {
                     console.log('find exist room')
+
+                    room.preAddUser(user)
                     matchListener(user, room)
                 }
             })
