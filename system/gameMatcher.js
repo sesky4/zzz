@@ -1,61 +1,60 @@
 var tcp = require('./net')
 var config = require('../config')
-var parseMatchRequest = require('./protocol/matchRequest')
-var newGameRoom = require('./gameRoom')
+var gameRoom = require('./gameRoom')
+var reqParser = require('./protocol/reqParser')
+var resBuiler = require('./protocol/resBuilder')
 
 function gameMatcher(port, rooms, matchListener) {
     // matchListener(player, room)
     var net = new tcp(port)
     net.newConnection((c) => {
-        c.on('data', (msg) => {
-            vaildMatchRequest(msg, (req, err) => {
-                if (err) {
-                    c.write(err)
-                    return
-                }
-
-                var user = {
-                    socket: c,
-                    userKey: req.userKey
-                }
-
-                var room = findAvailableRoom(rooms)
-                if (!room) {
-                    newGameRoom(() => {
-                        console.log('create new room')
-
-                        this.startGame()
-                        rooms.push(this)
-
-                        this.preAddUser(user)
-                        matchListener(user, this)
-                    })
-                } else {
-                    console.log('find exist room')
-
-                    room.preAddUser(user)
-                    matchListener(user, room)
-                }
-            })
-        })
+        console.log('a new connection')
+        c.on('data', onMatch)
+        c.on('error', () => {})
+        // while (1) {
+        //     c.write('1')
+        // }
     })
 
+    function onMatch(msg) {
+        var that = this
+        vaildMatchRequest(msg, (req, err) => {
+            if (err) {
+                that.write(resBuiler('error', err))
+                return
+            }
+
+            var user = {
+                socket: that,
+                userKey: req.userKey
+            }
+
+            var room = findAvailableRoom(rooms)
+            if (!room) {
+                room = new gameRoom()
+                room.startGame()
+                rooms.push(room)
+            }
+            room.preAddUser(user)
+            matchListener(user, room)
+            that.removeListener('data', onMatch)
+        })
+    }
+
     function vaildMatchRequest(msg, callback) {
-        // callback(request, err)
-        var request = parseMatchRequest(msg)
-        if (!request) {
-            callback(null, 'WRONG_PACKET')
+        var protocol = reqParser(msg)
+
+        /* callback(protocol, err) */
+        if (protocol.error) {
+            callback(null, protocol)
             return
         }
-        if (request == config.ERROR.WRONG_PACKET) {
-            callback(null, 'WRONG_PACKET')
+        if (protocol.type != 'matchRequest') {
+            callback(null, 'Not a matchRequest')
             return
         }
-        if (request == config.ERROR.VERSION_MISSMATCH) {
-            callback(null, 'VERSION_MISSMATCH')
-            return
-        }
-        callback(request, null)
+        callback(protocol, null)
+
     }
 
     function findAvailableRoom(rooms) {

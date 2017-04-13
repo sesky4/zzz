@@ -4,10 +4,10 @@ var tcp = require('./net')
 var PlayerClient = require('./playerClient')
 var config = require('../config')
 
-function gameroom(callback) {
+function gameroom() {
     var playerClients = []
 
-    var net = new tcp(0)
+    // var net = new tcp(0)
 
     var gameWorld = new gameworld()
     var lastGameTick = Date.now()
@@ -16,7 +16,7 @@ function gameroom(callback) {
     this.startGame = function () {
         if (!isRunning) {
             setInterval(() => {
-                var dt = Date.now() - lastGameTick
+                var dt = (Date.now() - lastGameTick) / 1000
                 gameWorld.update(dt)
                 lastGameTick = Date.now()
             }, 1000 / config.GAME_UPDATE_RATE)
@@ -40,18 +40,18 @@ function gameroom(callback) {
         return length < config.GAMEROOM.MAX_PLAYER
     }
 
-    this.getAddress = function () {
-        var address = {
-            host: config.INTERNET_ADDRESS,
-            port: net.address().port
-        }
-        return address
-    }
+    // this.getAddress = function () {
+    //     var address = {
+    //         host: config.INTERNET_ADDRESS,
+    //         port: net.address().port
+    //     }
+    //     return address
+    // }
 
     // used as callback because it can't get address immediately    
-    net.on('listening', (function () {
-        callback()
-    }).bind(this));
+    // net.on('listening', (function () {
+    //     callback()
+    // }).bind(this));
 }
 
 module.exports = gameroom

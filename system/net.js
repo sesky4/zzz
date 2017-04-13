@@ -29,6 +29,9 @@ function tcp(port) {
     var server = net.createServer()
     server.listen(port)
 
+    // add error handler
+    server.on('error', () => {})
+
     this.on = function (event, listener) {
         server.on(event, listener)
     }

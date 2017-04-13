@@ -1,0 +1,10 @@
+
+{"magic_number":"ZZZ","version":"1.0.0","eventType":"matchRequest","userKey":"qwe"}
+
+{"magic_number":"ZZZ","version":"1.0.0","eventType":"connectRequest","name":"myname"} 
+
+{"magic_number":"ZZZ","version":"1.0.0","eventType":"moveRequest","speedX":0.6,"speedY":0.5}
+
+{"magic_number":"ZZZ","version":"1.0.0","eventType":"fireRequest","angle":90}
+
+{"magic_number":"ZZZ","version":"1.0.0","eventType":"exitRequest"}

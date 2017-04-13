@@ -1,10 +1,15 @@
 var config = {
     HOST: '0.0.0.0',
     PORT: 3000,
+
     DELIMITER: ',',
     VERSION: '1.0.0',
     MAGIC_NUMBER: 'ZZZ',
     INTERNET_ADDRESS: '127.0.0.1',
+
+    GAME_UPDATE_RATE: 60,
+    NET_UPDATE_RATE: 1,
+
     ERROR: {
         VERSION_MISSMATCH: 1,
         WRONG_PACKET: 2,
@@ -17,13 +22,22 @@ var config = {
     RESPONSE: {
         MATCH_REQUEST_NO: 0,
     },
-    GAME_UPDATE_RATE: 60,
-    NET_UPDATE_RATE: 60,
+
+
     PLAYER: {
-        MAX_SPEED: 5
+        MAX_SPEED: 5,
+        RADIUS: 1,
+        W: 1,
+        H: 1,
+        BULLET: {
+            MAX_SPEED: 20,
+            MAX_DISTANCE: 100,
+            W: 1,
+            H: 1
+        }
     },
     GAMEROOM: {
-        MAX_PLAYER: 2
+        MAX_PLAYER: 20
 
     }
 }

@@ -1,15 +1,19 @@
-var protocolParse = function () {}
+var reqParser = require('./protocol/reqParser')
 
 module.exports = function (socket) {
     var listeners = {}
 
+    socket.on('error', () => {})
     socket.on('data', (data) => {
         // todo: add a buffer to buff the data because TCP
         // is stream based.The data may not be a completed
         // protocol message.
-        var protocol = protocolParse(data)
-        // var listenerArray = listeners[protocol.type]
-        var listenerArray = listeners['playerJoin']
+        var protocol = reqParser(data)
+        if (protocol.error) {
+            socket.write(protocol.error)
+        }
+        var listenerArray = listeners[protocol.type]
+        // var listenerArray = listeners['connectRequest']
 
         if (listenerArray) {
             for (var eventId in listenerArray) {
