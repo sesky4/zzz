@@ -59,6 +59,10 @@ function gameWorld() {
         if (!this.getPlayerById(player.id)) {
             players.push(player)
             this.triggerEvent('playerJoin', players)
+
+            player.on('bulletDestory', (data) => {
+                this.triggerEvent('bulletDestory', data)
+            })
         }
     }
 
@@ -101,6 +105,7 @@ function gameWorld() {
             p.speed.y = speedY
         }
     }
+
     this.on = (function (event, listener) {
         if (!this.eventListener[event]) {
             this.eventListener[event] = []
@@ -118,7 +123,7 @@ function gameWorld() {
     }).bind(this)
 
     // game instructions
-    this.makeFire = function (playerId, angle) {
+    this.makeFire = function (playerId, angle, bulletId) {
         var p = this.getPlayerById(playerId)
         if (p) {
             var rad = angle * Math.PI / 180
@@ -127,7 +132,8 @@ function gameWorld() {
 
             p.fire({
                 x: dirX,
-                y: dirY
+                y: dirY,
+                id: bulletId
             })
         }
     }

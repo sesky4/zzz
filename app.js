@@ -4,9 +4,10 @@ var rooms = []
 var gameMatch = require('./system/gameMatcher')
 var resBuilder = require('./system/protocol/resBuilder')
 var Player = require('./game/player')
+var config = require('./config')
 
-// run gamematch at port 3000
-gameMatch(3000, rooms, (user, room) => {
+// run gamematch at port
+gameMatch(config.PORT, rooms, (user, room) => {
     // user = {
     //     socket：socket
     //     userKey：string

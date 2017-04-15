@@ -1,6 +1,6 @@
 var config = {
     HOST: '0.0.0.0',
-    PORT: 3000,
+    PORT: 44444,
 
     DELIMITER: ',',
     VERSION: '1.0.0',
@@ -8,7 +8,7 @@ var config = {
     INTERNET_ADDRESS: '127.0.0.1',
 
     GAME_UPDATE_RATE: 60,
-    NET_UPDATE_RATE: 1,
+    NET_UPDATE_RATE: 10,
 
     ERROR: {
         VERSION_MISSMATCH: 1,
@@ -30,8 +30,8 @@ var config = {
         W: 1,
         H: 1,
         BULLET: {
-            MAX_SPEED: 20,
-            MAX_DISTANCE: 100,
+            MAX_SPEED: 3,
+            MAX_DISTANCE: 5,
             W: 1,
             H: 1
         }

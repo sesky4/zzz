@@ -78,9 +78,10 @@ function playerClient(user) {
             var res = resBuilder('syncPlayer', data)
             this.user.socket.write(res)
         })
+
         this.gameConnector.on('syncBullet', (data) => {
             var res = resBuilder('syncBullet', data)
-            // this.user.socket.write(res)
+            this.user.socket.write(res)
         })
 
         // add listener first in order to listen to my join-event        
@@ -103,7 +104,7 @@ function playerClient(user) {
     }).bind(this))
 
     this.remoteConnector.on('fireRequest', ((data) => {
-        this.gameWorld.makeFire(this.user.id, data.angle)
+        this.gameWorld.makeFire(this.user.id, data.angle, uuid())
     }).bind(this))
 
     this.remoteConnector.on('exitRequest', ((data) => {

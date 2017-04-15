@@ -22,11 +22,13 @@ function Player(id, name) {
 
     var bullets = []
 
+    this.eventListener = {}
+
     this.updatePosition = function (dt, limitRange) {
 
         // joke
-        this.speed.x = Math.random() * 10 - 5
-        this.speed.y = Math.random() * 10 - 5
+        // this.speed.x = Math.random() * 10 - 5
+        // this.speed.y = Math.random() * 10 - 5
 
 
         // vt + 1/2 * a*t*t
@@ -51,8 +53,8 @@ function Player(id, name) {
     this.updateBullets = function (dt, limitRange) {
         for (var i in bullets) {
             var bullet = bullets[i]
-            bullet.x += bullet.speed.x * dt
-            bullet.y += bullet.speed.y * dt
+            bullet.x += bullet.speedX * dt
+            bullet.y += bullet.speedY * dt
 
             xMin = -limitRange.width / 2
             xMax = limitRange.width / 2
@@ -77,6 +79,7 @@ function Player(id, name) {
     this.removeBullet = function (bulletId) {
         for (var i in bullets) {
             if (bullets[i].id == bulletId) {
+                this.triggerEvent('bulletDestory', bullets[i])
                 bullets.splice(i, 1)
             }
         }
@@ -85,13 +88,15 @@ function Player(id, name) {
     this.fire = (function (speed) {
         if (canFire()) {
             bullets.push({
-                id: bullets.length,
+                // id: bullets.length,
+                id: speed.id,
                 owner: this,
                 ownerId: this.id,
                 startPointX: this.x,
                 startPointY: this.y,
                 maxDistance: config.PLAYER.BULLET.MAX_DISTANCE,
-                speed: speed,
+                speedX: speed.x,
+                speedY: speed.y,
                 x: this.x,
                 y: this.y,
                 // weight and height is necessary for quadtree
@@ -116,6 +121,22 @@ function Player(id, name) {
     function canFire() {
         return true
     }
+
+    this.on = (function (event, listener) {
+        if (!this.eventListener[event]) {
+            this.eventListener[event] = []
+        }
+        this.eventListener[event].push(listener)
+    }).bind(this)
+
+    this.triggerEvent = (function (event, data) {
+        if (this.eventListener[event]) {
+            // call them
+            for (var eventId in this.eventListener[event]) {
+                this.eventListener[event][eventId](data)
+            }
+        }
+    }).bind(this)
 }
 
 module.exports = Player

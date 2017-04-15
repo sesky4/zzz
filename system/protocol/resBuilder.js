@@ -26,6 +26,9 @@ module.exports = function (resType, data) {
         case 'syncBullet':
             res = buildSyncBullet(data)
             break
+        case 'bulletDestory':
+            res = buildBulletDestory(data)
+            break
     }
     var signP = addSign(res)
     var prefixP = addPrefix(signP)
@@ -35,6 +38,7 @@ module.exports = function (resType, data) {
 
 function addPrefix(msg) {
     var length = msg.length
+    // console.log(length)
 
     var buf1 = new Buffer(2)
     buf1.writeUInt16LE(length)
@@ -110,6 +114,7 @@ function buildSyncPlayer(data) {
         players: []
     }
     for (var i in data.players) {
+        // console.log("" + data.players[i].speed.x + '       ' + data.players[i].speed.y)
         packet.players.push({
             id: data.players[i].id,
             name: data.players[i].name,
@@ -129,9 +134,22 @@ function buildSyncBullet(data) {
     }
     for (var i in data.bullets) {
         packet.bullets.push({
+            id: data.bullets[i].id,
             x: data.bullets[i].x,
-            y: data.bullets[i].y
+            y: data.bullets[i].y,
+            speedX: data.bullets[i].speedX,
+            speedY: data.bullets[i].speedY
         })
     }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildBulletDestory(data) {
+    var packet = {
+        eventType: 'bulletDestory',
+        id: data.id
+
+    }
+    // console.log(++global.bulletDestoryTimes)
     return JSON.stringify(addHeader(packet))
 }

@@ -3,21 +3,45 @@ var config = require('../config')
 var gameRoom = require('./gameRoom')
 var reqParser = require('./protocol/reqParser')
 var resBuiler = require('./protocol/resBuilder')
+var bb = require('./byteBuffer')
 
 function gameMatcher(port, rooms, matchListener) {
     // matchListener(player, room)
     var net = new tcp(port)
+    var buffer = new bb()
+
     net.newConnection((c) => {
         console.log('a new connection')
-        c.on('data', onMatch)
+        c.on('data', onData)
         c.on('error', () => {})
-        // while (1) {
-        //     c.write('1')
-        // }
     })
 
-    function onMatch(msg) {
-        var that = this
+    function onData(data) {
+        buffer.append(data)
+        var p
+        while (p = getPacket(buffer)) {
+            onMatch(this, p)
+        }
+    }
+
+    function getPacket(buf) {
+        var length = buf.read(2)
+        if (length != null) {
+            length = length.readInt16LE()
+        }
+        if (length > 0 && length < 65536) {
+            var packet = buf.read(length + 2)
+            if (packet != null) {
+                buf.readAndRemove(length + 2)
+                return packet.slice(2, packet.length)
+            } else {
+                return null
+            }
+        }
+    }
+
+    function onMatch(that, msg) {
+        // var that = this
         vaildMatchRequest(msg, (req, err) => {
             if (err) {
                 that.write(resBuiler('error', err))
@@ -37,7 +61,7 @@ function gameMatcher(port, rooms, matchListener) {
             }
             room.preAddUser(user)
             matchListener(user, room)
-            that.removeListener('data', onMatch)
+            that.removeListener('data', onData)
         })
     }
 

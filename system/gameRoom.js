@@ -7,8 +7,6 @@ var config = require('../config')
 function gameroom() {
     var playerClients = []
 
-    // var net = new tcp(0)
-
     var gameWorld = new gameworld()
     var lastGameTick = Date.now()
     var isRunning = false
