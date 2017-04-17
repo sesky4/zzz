@@ -26,6 +26,9 @@ module.exports = function (resType, data) {
         case 'syncBullet':
             res = buildSyncBullet(data)
             break
+        case 'bulletBirth':
+            res = buildBulletBirth(data)
+            break
         case 'bulletDestory':
             res = buildBulletDestory(data)
             break
@@ -150,6 +153,20 @@ function buildBulletDestory(data) {
         id: data.id
 
     }
-    // console.log(++global.bulletDestoryTimes)
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildBulletBirth(data) {
+    var packet = {
+        eventType: 'bulletBirth',
+        bullet: {
+            id: data.id,
+            startX: data.x,
+            startY: data.y,
+            speedX: data.speedX,
+            speedY: data.speedY,
+            maxDistance: data.maxDistance
+        }
+    }
     return JSON.stringify(addHeader(packet))
 }

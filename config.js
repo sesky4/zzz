@@ -26,12 +26,13 @@ var config = {
 
     PLAYER: {
         MAX_SPEED: 5,
-        RADIUS: 1,
+        RADIUS: 0.7,
         W: 1,
         H: 1,
+        MAX_SHOOT_RATE: 100,
         BULLET: {
-            MAX_SPEED: 3,
-            MAX_DISTANCE: 5,
+            MAX_SPEED: 10,
+            MAX_DISTANCE: 20,
             W: 1,
             H: 1
         }

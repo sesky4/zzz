@@ -26,12 +26,7 @@ function playerClient(user) {
     this.remoteConnector.on('connectRequest', ((data) => {
         // gameworld message
         this.gameConnector.on('playerJoin', ((data) => {
-            console.log('playerJoin')
             this.user.socket.write(resBuilder('connectGame', this.user.id))
-
-            // sync all players
-            // var res = resBuilder('playerJoin', data)
-            // this.user.socket.write(res)
         }).bind(this))
 
         this.gameConnector.on('playerBirth', ((data) => {

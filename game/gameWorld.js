@@ -60,6 +60,13 @@ function gameWorld() {
             players.push(player)
             this.triggerEvent('playerJoin', players)
 
+
+            player.on('playerDead', (data) => {
+                this.triggerEvent('playerDead', data)
+            })
+            player.on('bulletBirth', (data) => {
+                this.triggerEvent('bulletBirth', data)
+            })
             player.on('bulletDestory', (data) => {
                 this.triggerEvent('bulletDestory', data)
             })
@@ -96,6 +103,9 @@ function gameWorld() {
 
     this.setPlayerSpeed = function (playerId, speed) {
         var p = this.getPlayerById(playerId)
+        if (!p) {
+            return;
+        }
 
         var speedX = speed.x
         var speedY = speed.y
@@ -143,11 +153,12 @@ function gameWorld() {
             players: players
         })
     }, 1000 / config.NET_UPDATE_RATE)
-    setInterval(() => {
-        this.triggerEvent('syncBullet', {
-            bullets: bullets
-        })
-    }, 1000 / config.NET_UPDATE_RATE)
+
+    // setInterval(() => {
+    //     this.triggerEvent('syncBullet', {
+    //         bullets: bullets
+    //     })
+    // }, 1000 / config.NET_UPDATE_RATE)
 }
 
 module.exports = gameWorld

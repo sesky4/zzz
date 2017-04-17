@@ -24,6 +24,8 @@ function Player(id, name) {
 
     this.eventListener = {}
 
+    var lastShoot = Date.now()
+
     this.updatePosition = function (dt, limitRange) {
 
         // joke
@@ -66,7 +68,7 @@ function Player(id, name) {
             bullet.y = bullet.y > yMax ? xMax : bullet.y
             bullet.y = bullet.y < yMin ? xMax : bullet.y
             // console.log(bullet)
-            if (Math.pow(Math.pow(bullet.x - bullet.startPointX, 2) + Math.pow(bullet.y - bullet.startPointY, 2), 0.5) > bullet.maxDistance) {
+            if (Math.pow(Math.pow(bullet.x - bullet.startX, 2) + Math.pow(bullet.y - bullet.startY, 2), 0.5) > bullet.maxDistance) {
                 bullet.removeSelf()
             }
         }
@@ -85,41 +87,39 @@ function Player(id, name) {
         }
     }
 
-    this.fire = (function (speed) {
+    this.fire = (function (bulletInfo) {
         if (canFire()) {
-            bullets.push({
-                // id: bullets.length,
-                id: speed.id,
+            var bullet = {
+                id: bulletInfo.id,
                 owner: this,
                 ownerId: this.id,
-                startPointX: this.x,
-                startPointY: this.y,
+                startX: this.x,
+                startY: this.y,
                 maxDistance: config.PLAYER.BULLET.MAX_DISTANCE,
-                speedX: speed.x,
-                speedY: speed.y,
+                speedX: bulletInfo.x,
+                speedY: bulletInfo.y,
                 x: this.x,
                 y: this.y,
                 // weight and height is necessary for quadtree
                 w: config.PLAYER.BULLET.W,
                 h: config.PLAYER.BULLET.H,
-                // keep necessary properties for net transmission
-                toProtocol: function () {
-                    return {
-                        // 'this' here means bullet itself
-                        owner: this.owner,
-                        x: this.x,
-                        y: this.y
-                    }
-                },
                 removeSelf: function () {
                     this.owner.removeBullet(this.id)
                 }
-            })
+            }
+            bullets.push(bullet)
+
+            this.triggerEvent('bulletBirth', bullet)
         }
     }).bind(this)
 
     function canFire() {
-        return true
+        var now = Date.now()
+        if (now - lastShoot > 1000 / config.PLAYER.MAX_SHOOT_RATE) {
+            lastShoot = now
+            return true
+        }
+        return false
     }
 
     this.on = (function (event, listener) {
