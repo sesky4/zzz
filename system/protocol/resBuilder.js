@@ -20,6 +20,9 @@ module.exports = function (resType, data) {
         case 'playerDead':
             res = buildPlayerDead(data)
             break
+        case 'playerFire':
+            res = buildPlayerFire(data)
+            break
         case 'syncPlayer':
             res = buildSyncPlayer(data)
             break
@@ -166,6 +169,16 @@ function buildBulletBirth(data) {
             speedX: data.speedX,
             speedY: data.speedY,
             maxDistance: data.maxDistance
+        }
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildPlayerFire(data) {
+    var packet = {
+        eventType: 'playerStateChange',
+        bullet: {
+            id: data.id
         }
     }
     return JSON.stringify(addHeader(packet))

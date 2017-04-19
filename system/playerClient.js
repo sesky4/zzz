@@ -99,12 +99,16 @@ function playerClient(user) {
     }).bind(this))
 
     this.remoteConnector.on('fireRequest', ((data) => {
-        this.gameWorld.makeFire(this.user.id, data.angle, uuid())
+        this.gameWorld.makeFire(this.user.id, data.angle)
     }).bind(this))
 
     this.remoteConnector.on('exitRequest', ((data) => {
         this.gameWorld.removePlayer(this.user.id)
     }).bind(this))
+
+    this.remoteConnector.on('rebornRequest', (data) => {
+        this.gameWorld.rebornPlayer(this.user.id)
+    })
 
 
 

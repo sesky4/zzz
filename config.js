@@ -8,8 +8,12 @@ var config = {
     INTERNET_ADDRESS: '127.0.0.1',
 
     GAME_UPDATE_RATE: 60,
-    NET_UPDATE_RATE: 10,
+    NET_UPDATE_RATE: 30,
 
+    MAP: {
+        width: 5000,
+        height: 5000
+    },
     ERROR: {
         VERSION_MISSMATCH: 1,
         WRONG_PACKET: 2,
@@ -25,11 +29,11 @@ var config = {
 
 
     PLAYER: {
-        MAX_SPEED: 5,
+        MAX_SPEED: 3,
         RADIUS: 0.7,
         W: 1,
         H: 1,
-        MAX_SHOOT_RATE: 100,
+        MAX_SHOOT_RATE: 3,
         BULLET: {
             MAX_SPEED: 10,
             MAX_DISTANCE: 20,

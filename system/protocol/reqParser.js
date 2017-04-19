@@ -28,6 +28,8 @@ module.exports = function (data) {
             return parseExitRequest(obj)
         case 'matchRequest':
             return parseMatchRequest(obj)
+        case 'rebornRequest':
+            return parseRebornRequest(obj)
         default:
             return {
                 error: "Server does not support event type " + obj.event
@@ -108,6 +110,19 @@ function parseMatchRequest(data) {
         var req = {
             type: 'matchRequest',
             userKey: data.userKey
+        }
+    } catch (error) {
+        return {
+            error: 'wrong format matchRequest'
+        }
+    }
+    return req
+}
+
+function parseRebornRequest(data) {
+    try {
+        var req = {
+            type: 'rebornRequest',
         }
     } catch (error) {
         return {
