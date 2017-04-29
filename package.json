@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "dependencies": {
     "uuid": "latest",
-    "simple-quadtree": "latest",
-    "d3-quadtree": "latest",
-    "node-quadtree": "latest"
+    "simple-quadtree": "latest"
   }
 }
