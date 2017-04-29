@@ -1,7 +1,7 @@
 var config = require('../config')
 var Bullet = require('../game/bullet/bullet')
 var Gun = require('./weapon/gun')
-var ZombiePaw = require('./weapon/ZombiePaw')
+var ZombiePaw = require('./weapon/zombiePaw')
 var injector = require('../eventHandlerInjector')
 
 function Player(id, name) {
