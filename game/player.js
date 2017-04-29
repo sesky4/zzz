@@ -1,127 +1,152 @@
 var config = require('../config')
+var Bullet = require('../game/bullet/bullet')
+var Gun = require('./weapon/gun')
+var ZombiePaw = require('./weapon/ZombiePaw')
+var injector = require('../eventHandlerInjector')
 
 function Player(id, name) {
     this.id = id
     this.name = name
-    this.x = 0
-    this.y = 0
+    this.x = (Math.random() - 0.5) * config.MAP.width
+    this.y = (Math.random() - 0.5) * config.MAP.height
     this.w = config.PLAYER.W
     this.h = config.PLAYER.H
     this.radius = config.PLAYER.RADIUS
-    this.speed = {
-        x: 0,
-        y: 0
-    }
+    this.speedX = 0
+    this.speedY = 0
     this.bullets = []
-    this.eventListener = {}
     this.lastShoot = Date.now()
     this.alive = true
+    this.score = 0
+    this.weapon = null
+    this.immutable = false
+
+    this.giveImmutable(config.PLAYER.JELLY.DEFAULT_IMU_TIME)
+
+    this.equip(Gun)
+    this.role = 'jelly'
+    this.maxSpeed = config.PLAYER.JELLY.MAX_SPEED
+    this.hp = config.PLAYER.JELLY.DEFAULT_HP
+    this.maxHp = config.PLAYER.JELLY.DEFAULT_HP
 }
 
-Player.prototype.on = function (event, listener) {
-    if (!this.eventListener[event]) {
-        this.eventListener[event] = []
-    }
-    this.eventListener[event].push(listener)
+injector.inject(Player)
+
+Player.prototype.fire = function (angle) {
+    this.weapon.fire(angle)
 }
 
-Player.prototype.triggerEvent = function (event, data) {
-    if (this.eventListener[event]) {
-        // call them
-        for (var eventId in this.eventListener[event]) {
-            this.eventListener[event][eventId](data)
-        }
-    }
-}
-
-Player.prototype.canFire = function () {
-    var now = Date.now()
-    if (now - this.lastShoot > 1000 / config.PLAYER.MAX_SHOOT_RATE) {
-        this.lastShoot = now
-        return true
-    }
-    return false
-}
-
-Player.prototype.fire = function (bulletInfo) {
-    if (this.canFire()) {
-        var bullet = {
-            id: bulletInfo.id,
-            owner: this,
-            ownerId: this.id,
-            startX: this.x,
-            startY: this.y,
-            maxDistance: config.PLAYER.BULLET.MAX_DISTANCE,
-            speedX: bulletInfo.x,
-            speedY: bulletInfo.y,
-            x: this.x,
-            y: this.y,
-            // weight and height is necessary for quadtree
-            w: config.PLAYER.BULLET.W,
-            h: config.PLAYER.BULLET.H,
-            removeSelf: function () {
-                this.owner.removeBullet(this.id)
-            }
-        }
-        this.bullets.push(bullet)
-
-        this.triggerEvent('bulletBirth', bullet)
+Player.prototype.equip = function (weapon) {
+    //weapon is the constructor
+    if (weapon) {
+        this.weapon = new weapon(this)
+        this.weapon.on('bulletBirth', (data) => {
+            this.triggerEvent('bulletBirth', data)
+        })
+        this.weapon.on('bulletDestroy', (data) => {
+            this.triggerEvent('bulletDestroy', data)
+        })
     }
 }
 
 Player.prototype.getBullets = function () {
-    return this.bullets
+    return this.weapon.getBullets()
 }
 
-Player.prototype.removeBullet = function (bulletId) {
-    for (var i in this.bullets) {
-        if (this.bullets[i].id == bulletId) {
-            this.triggerEvent('bulletDestory', this.bullets[i])
-            this.bullets.splice(i, 1)
-        }
+Player.prototype.update = function (dt) {
+    this.updatePosition(dt)
+    this.weapon.update(dt)
+}
+
+Player.prototype.updatePosition = function (dt) {
+    if (!this.alive) {
+        return
     }
-}
-
-Player.prototype.updateBullets = function (dt, limitRange) {
-    for (var i in this.bullets) {
-        var bullet = this.bullets[i]
-        bullet.x += bullet.speedX * dt
-        bullet.y += bullet.speedY * dt
-
-        xMin = -limitRange.width / 2
-        xMax = limitRange.width / 2
-        yMin = -limitRange.height / 2
-        yMax = limitRange.height / 2
-
-        bullet.x = bullet.x > xMax ? xMax : bullet.x
-        bullet.x = bullet.x < xMin ? xMin : bullet.x
-        bullet.y = bullet.y > yMax ? xMax : bullet.y
-        bullet.y = bullet.y < yMin ? xMax : bullet.y
-        // console.log(bullet)
-        if (Math.pow(Math.pow(bullet.x - bullet.startX, 2) + Math.pow(bullet.y - bullet.startY, 2), 0.5) > bullet.maxDistance) {
-            bullet.removeSelf()
-        }
-    }
-}
-
-Player.prototype.updatePosition = function (dt, limitRange) {
-    // vt + 1/2 * a*t*t
-    this.x += this.speed.x * dt
-    this.y += this.speed.y * dt
+    var limitRange = config.MAP
+    this.x += this.speedX * dt
+    this.y += this.speedY * dt
 
     xMin = -limitRange.width / 2
     xMax = limitRange.width / 2
     yMin = -limitRange.height / 2
     yMax = limitRange.height / 2
 
-    this.x = this.x > xMax ? xMax : this.x
-    this.x = this.x < xMin ? xMin : this.x
-    this.y = this.y > yMax ? xMax : this.y
-    this.y = this.y < yMin ? xMax : this.y
+    this.x = Math.min(this.x, xMax)
+    this.x = Math.max(this.x, xMin)
+    this.y = Math.min(this.y, yMax)
+    this.y = Math.max(this.y, yMin)
 }
 
+//todo: change here add hp related infomation
 Player.prototype.hurt = function (bullet) {
-    this.alive = false
-    this.triggerEvent('playerDead', this)
+    switch (bullet.type) {
+        case 'bullet':
+            bullet.owner.owner.score += bullet.damage
+            this.injure(bullet.damage)
+            break;
+        case 'zombieBullet':
+            bullet.owner.owner.score += bullet.damage
+            if (this.role == 'jelly') {
+                this.affected()
+                break;
+            }
+            if (this.role == 'zombie') {
+                this.injure(bullet.damage)
+                break;
+            }
+            break;
+    }
+
+}
+
+Player.prototype.affected = function () {
+    this.equip(ZombiePaw)
+    this.role = 'zombie'
+    this.hp = config.PLAYER.ZOMBIE.DEFAULT_HP
+    this.maxHp = config.PLAYER.ZOMBIE.DEFAULT_HP
+    this.maxSpeed = config.PLAYER.ZOMBIE.MAX_SPEED
+    this.triggerEvent('playerAffected', this)
+}
+
+Player.prototype.injure = function (damage) {
+    this.hp -= damage
+    if (this.hp <= 0) {
+        this.alive = false
+        this.triggerEvent('playerDead', this)
+    }
+}
+
+Player.prototype.speed = function (spX, spY) {
+    if (spX != undefined && spY != undefined && this.alive) {
+        this.speedX = spX * this.maxSpeed
+        this.speedY = spY * this.maxSpeed
+        return
+    } else {
+        return {
+            speedX: this.speedX,
+            speedY: this.speedY
+        }
+    }
+}
+
+Player.prototype.reborn = function () {
+    this.alive = true
+    this.x = (Math.random() - 0.5) * config.MAP.width
+    this.y = (Math.random() - 0.5) * config.MAP.height
+
+    this.equip(Gun)
+    this.role = 'jelly'
+    this.maxSpeed = config.PLAYER.JELLY.MAX_SPEED
+    this.hp = config.PLAYER.JELLY.DEFAULT_HP
+    this.maxHp = config.PLAYER.JELLY.DEFAULT_HP
+
+    this.giveImmutable(config.PLAYER.JELLY.DEFAULT_IMU_TIME)
+}
+
+Player.prototype.giveImmutable = function (delay) {
+    this.immutable = true
+    setTimeout(() => {
+        this.immutable = false
+    }, delay * 1000)
 }
 module.exports = Player

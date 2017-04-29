@@ -1,9 +1,9 @@
 var reqParser = require('./protocol/reqParser')
 var resBuilder = require('./protocol/resBuilder')
 var bb = require('./byteBuffer')
+var injector = require('../eventHandlerInjector')
 
-module.exports = function (socket) {
-    var listeners = {}
+function playerConnector(socket) {
     var buffer = new bb()
 
     socket.on('error', () => {})
@@ -19,16 +19,8 @@ module.exports = function (socket) {
             if (protocol.error) {
                 socket.write(resBuilder('error', protocol))
             }
-            var listenerArray = listeners[protocol.type]
-            // var listenerArray = listeners['connectRequest']
-
-            if (listenerArray) {
-                for (var eventId in listenerArray) {
-                    listenerArray[eventId](protocol)
-                }
-            }
+            this.triggerEvent(protocol.type, protocol)
         }
-
     })
 
     function getPacket(buf) {
@@ -46,11 +38,8 @@ module.exports = function (socket) {
             }
         }
     }
-
-    this.on = (event, listener) => {
-        if (!listeners[event]) {
-            listeners[event] = []
-        }
-        listeners[event].push(listener)
-    }
 }
+
+injector.inject(playerConnector)
+
+module.exports = playerConnector

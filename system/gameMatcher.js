@@ -4,14 +4,15 @@ var gameRoom = require('./gameRoom')
 var reqParser = require('./protocol/reqParser')
 var resBuiler = require('./protocol/resBuilder')
 var bb = require('./byteBuffer')
+var resBuilder = require('./protocol/resBuilder')
+var uuid = require('uuid/v4')
 
-function gameMatcher(port, rooms, matchListener) {
-    // matchListener(player, room)
+function gameMatcher(port, rooms) {
     var net = new tcp(port)
     var buffer = new bb()
 
     net.newConnection((c) => {
-        console.log('a new connection')
+        console.log('a new connection:' + c.remoteAddress)
         c.on('data', onData)
         c.on('error', () => {})
     })
@@ -50,17 +51,20 @@ function gameMatcher(port, rooms, matchListener) {
 
             var user = {
                 socket: that,
-                userKey: req.userKey
+                userKey: uuid()
             }
 
             var room = findAvailableRoom(rooms)
             if (!room) {
                 room = new gameRoom()
+                room['onDestroy'] = () => {
+                    rooms.splice(rooms.indexOf(room), 1)
+                }
                 room.startGame()
                 rooms.push(room)
             }
-            room.preAddUser(user)
-            matchListener(user, room)
+            room.addUser(user)
+            user.socket.write(resBuilder('matchGame'))
             that.removeListener('data', onData)
         })
     }

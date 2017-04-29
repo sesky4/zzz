@@ -1,15 +1,17 @@
 var config = require('../config')
 var quadtree = require('simple-quadtree')
 var uuid = require('uuid/v4')
+var injector = require('../eventHandlerInjector')
+var foodManager = require('./foodManager')
+var randomEvent = require('./randomEvent')
 
 function gameWorld() {
     this.startTime = Date.now()
-    this.map = config.MAP
     this.players = [];
-    this.foods = [];
-    this.bullets = [];
-    this.tree = quadtree(0, 0, this.map.width, this.map.height)
-    this.eventListener = {}
+    this.foodManager = new foodManager(this)
+    this.tree = quadtree(0, 0, config.MAP.width, config.MAP.height)
+    this.leaderBoard = []
+    this.randomEvent = new randomEvent(this)
 
     setInterval(() => {
         this.triggerEvent('syncPlayer', {
@@ -17,70 +19,71 @@ function gameWorld() {
         })
     }, 1000 / config.NET_UPDATE_RATE)
 
-    // setInterval(() => {
-    //     this.triggerEvent('syncBullet', {
-    //         bullets: bullets
-    //     })
-    // }, 1000 / config.NET_UPDATE_RATE)
+    setInterval(() => {
+        this.generateLeaderBoard()
+        // and remain game time
+        this.triggerEvent('leaderBoardUpdate', {
+            leaderBoard: this.leaderBoard,
+            leftTime: config.EVERY_GAME_TIME - (Date.now() - this.startTime) / 1000
+        })
+    }, 1000 / config.LEADERBOARD_UPDATE_RATE)
+
+    this.foodManager.on('foodBirth', (food) => {
+        this.triggerEvent('foodBirth', food)
+    })
+    this.foodManager.on('foodDestroy', (food) => {
+        this.triggerEvent('foodDestroy', food)
+    })
+}
+
+injector.inject(gameWorld)
+
+gameWorld.prototype.getFoods = function () {
+    return this.foodManager.getFoods()
 }
 
 gameWorld.prototype.update = function (dt) {
-    bullets = []
-    for (var index in this.players) {
-        this.players[index].updatePosition(dt, this.map)
-        this.players[index].updateBullets(dt, this.map)
-        bullets = bullets.concat(this.players[index].getBullets())
+    if (this.gameOver()) {
+        this.triggerEvent('gameOver', this.leaderBoard)
+        return
     }
 
-    this.checkCollision()
+    this.buildQuadTree()
+    this.randomEvent.update()
+    for (var index in this.players) {
+        this.players[index].update(dt)
+    }
+
+    this.foodManager.update(dt)
 }
 
-gameWorld.prototype.checkCollision = function () {
-    // build treee
+gameWorld.prototype.buildQuadTree = function () {
     this.tree.clear()
     this.players.map((player) => {
         if (player.alive) {
             this.tree.put(player)
         }
     })
-    // check collision
-    this.bullets.map((bullet) => {
-        var possiblePlayer = this.tree.get(bullet)
-        if (possiblePlayer.length == 0) {
-            return
-        }
-        for (var i in possiblePlayer) {
-            var player = possiblePlayer[i]
-            if (bullet.ownerId != player.id) {
-                if (isCollision(player, bullet)) {
-                    player.hurt(bullet)
-                    bullet.removeSelf()
-                }
-            }
-        }
-
-    })
-}
-
-function isCollision(player, bullet) {
-    var dis = Math.pow(Math.pow((player.y - bullet.y), 2) + Math.pow((player.x - bullet.x), 2), 0.5)
-    return dis < player.radius
 }
 
 gameWorld.prototype.addPlayer = function (player) {
     if (!this.getPlayerById(player.id)) {
         this.players.push(player)
+        player.gameWorld = this
         this.triggerEvent('playerJoin', this.players)
 
 
-        player.on('playerDead', (data) => {
-            this.triggerEvent('playerDead', data)
+        player.on('playerDead', (player) => {
+            this.triggerEvent('playerDead', player)
+        })
+        player.on('playerAffected', (player) => {
+            this.triggerEvent('playerAffected', player)
         })
         player.on('bulletBirth', (data) => {
             this.triggerEvent('bulletBirth', data)
         })
-        player.on('bulletDestory', (data) => {
-            this.triggerEvent('bulletDestory', data)
+        player.on('bulletDestroy', (data) => {
+            this.triggerEvent('bulletDestroy', data)
         })
     }
 }
@@ -93,15 +96,6 @@ gameWorld.prototype.removePlayer = function (playerId) {
         }
     }
     this.triggerEvent('playerLeft', playerId)
-}
-
-gameWorld.prototype.getPlayerByTag = function (tag) {
-    for (var index in this.players) {
-        if (this.players[index].tag == tag) {
-            return this.players[index]
-        }
-        return null
-    }
 }
 
 gameWorld.prototype.getPlayerById = function (id) {
@@ -119,28 +113,11 @@ gameWorld.prototype.setPlayerSpeed = function (playerId, speed) {
         return;
     }
 
-    var speedX = speed.x * config.PLAYER.MAX_SPEED
-    var speedY = speed.y * config.PLAYER.MAX_SPEED
+    var speedX = speed.x
+    var speedY = speed.y
 
-    if (Math.pow(speedX * speedX + speedY * speedY, 0.5) <= config.PLAYER.MAX_SPEED) {
-        p.speed.x = speedX
-        p.speed.y = speedY
-    }
-}
-
-gameWorld.prototype.on = function (event, listener) {
-    if (!this.eventListener[event]) {
-        this.eventListener[event] = []
-    }
-    this.eventListener[event].push(listener)
-}
-
-gameWorld.prototype.triggerEvent = function (event, data) {
-    if (this.eventListener[event]) {
-        // call them
-        for (var eventId in this.eventListener[event]) {
-            this.eventListener[event][eventId](data)
-        }
+    if (Math.pow(speedX * speedX + speedY * speedY, 0.5) <= 1) {
+        p.speed(speedX, speedY)
     }
 }
 
@@ -148,15 +125,40 @@ gameWorld.prototype.triggerEvent = function (event, data) {
 gameWorld.prototype.makeFire = function (playerId, angle) {
     var p = this.getPlayerById(playerId)
     if (p) {
-        var rad = angle * Math.PI / 180
-        var dirX = config.PLAYER.BULLET.MAX_SPEED * Math.cos(rad)
-        var dirY = config.PLAYER.BULLET.MAX_SPEED * Math.sin(rad)
-
-        p.fire({
-            x: dirX,
-            y: dirY,
-            id: uuid()
-        })
+        p.fire(angle)
     }
 }
+
+// add reborn in player model
+gameWorld.prototype.rebornPlayer = function (playerId) {
+    var p = this.getPlayerById(playerId)
+    p.reborn()
+    this.triggerEvent('playerReborn', playerId)
+}
+
+gameWorld.prototype.generateLeaderBoard = function () {
+    var unsort = this.players.map((p) => {
+        return {
+            name: p.name,
+            score: p.score
+        }
+    })
+    this.leaderBoard = unsort.sort((a, b) => {
+        if (a.score > b.score) {
+            return -1;
+        } else {
+            return 1;
+        }
+    })
+}
+
+gameWorld.prototype.getAllPlayers = function () {
+    return this.players
+}
+
+gameWorld.prototype.gameOver = function () {
+    return config.EVERY_GAME_TIME - (Date.now() - this.startTime) / 1000 < 0
+}
+
+
 module.exports = gameWorld

@@ -23,6 +23,12 @@ module.exports = function (resType, data) {
         case 'playerFire':
             res = buildPlayerFire(data)
             break
+        case 'playerReborn':
+            res = buildPlayerReborn(data)
+            break;
+        case 'playerAffected':
+            res = buildPlayerAffected(data)
+            break;
         case 'syncPlayer':
             res = buildSyncPlayer(data)
             break
@@ -32,8 +38,20 @@ module.exports = function (resType, data) {
         case 'bulletBirth':
             res = buildBulletBirth(data)
             break
-        case 'bulletDestory':
-            res = buildBulletDestory(data)
+        case 'bulletDestroy':
+            res = buildBulletDestroy(data)
+            break
+        case 'leaderBoardUpdate':
+            res = buildLeaderBoardUpdate(data)
+            break
+        case 'gameOver':
+            res = buildGameOver(data)
+            break
+        case 'foodBirth':
+            res = buildFoodBirth(data)
+            break
+        case 'foodDestroy':
+            res = buildFoodDestroy(data)
             break
     }
     var signP = addSign(res)
@@ -120,14 +138,18 @@ function buildSyncPlayer(data) {
         players: []
     }
     for (var i in data.players) {
-        // console.log("" + data.players[i].speed.x + '       ' + data.players[i].speed.y)
         packet.players.push({
             id: data.players[i].id,
             name: data.players[i].name,
             x: data.players[i].x,
             y: data.players[i].y,
-            speedX: data.players[i].speed.x,
-            speedY: data.players[i].speed.y,
+            speedX: data.players[i].speedX,
+            speedY: data.players[i].speedY,
+            alive: data.players[i].alive,
+            role: data.players[i].role,
+            hp: data.players[i].hp,
+            maxHp: data.players[i].maxHp,
+            immutable: data.players[i].immutable
         })
     }
     return JSON.stringify(addHeader(packet))
@@ -150,9 +172,9 @@ function buildSyncBullet(data) {
     return JSON.stringify(addHeader(packet))
 }
 
-function buildBulletDestory(data) {
+function buildBulletDestroy(data) {
     var packet = {
-        eventType: 'bulletDestory',
+        eventType: 'bulletDestroy',
         id: data.id
 
     }
@@ -168,18 +190,63 @@ function buildBulletBirth(data) {
             startY: data.y,
             speedX: data.speedX,
             speedY: data.speedY,
-            maxDistance: data.maxDistance
+            maxDistance: data.maxDistance,
+            owner: data.owner.owner.id
         }
     }
     return JSON.stringify(addHeader(packet))
 }
 
-function buildPlayerFire(data) {
+function buildPlayerReborn(data) {
     var packet = {
-        eventType: 'playerStateChange',
-        bullet: {
+        eventType: 'playerReborn',
+        id: data
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildLeaderBoardUpdate(data) {
+    var packet = {
+        eventType: 'leaderBoardUpdate',
+        data: data.leaderBoard,
+        leftTime: data.leftTime
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildPlayerAffected(player) {
+    var packet = {
+        eventType: 'playerAffected',
+        id: player.id
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildGameOver(data) {
+    var packet = {
+        eventType: 'gameOver',
+        data: data
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildFoodBirth(data) {
+    var packet = {
+        eventType: 'foodBirth',
+        food: {
+            x: data.x,
+            y: data.y,
+            type: data.type,
             id: data.id
         }
+    }
+    return JSON.stringify(addHeader(packet))
+}
+
+function buildFoodDestroy(data) {
+    var packet = {
+        eventType: 'foodDestroy',
+        id: data.id
     }
     return JSON.stringify(addHeader(packet))
 }
