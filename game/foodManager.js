@@ -13,9 +13,9 @@ FoodManager.prototype.update = function (dt) {
     if (this.foodsCount() < config.FOODS_CONST_NUMBER) {
         var food = this.createRandomNew()
         this.foods.push(food)
-        food.on('foodDestroy', (food) => {
-            this.foods.splice(this.foods.indexOf(food), 1)
-            this.triggerEvent('foodDestroy', food)
+        food.on('foodDestroy', (data) => {
+            this.foods.splice(this.foods.indexOf(data.food), 1)
+            this.triggerEvent('foodDestroy', data)
         })
         this.triggerEvent('foodBirth', food)
     }

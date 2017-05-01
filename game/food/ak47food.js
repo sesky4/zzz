@@ -55,7 +55,10 @@ AK47FOOD.prototype.checkCollision = function () {
         var player = possiblePlayer[i]
         if (player.role == 'jelly' && player.alive) {
             player.equip(ak47)
-            this.triggerEvent('foodDestroy', this)
+            this.triggerEvent('foodDestroy', {
+                food: this,
+                consumer: player
+            })
             break
         }
     }

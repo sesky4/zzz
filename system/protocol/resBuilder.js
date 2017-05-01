@@ -246,7 +246,8 @@ function buildFoodBirth(data) {
 function buildFoodDestroy(data) {
     var packet = {
         eventType: 'foodDestroy',
-        id: data.id
+        id: data.food.id,
+        consumerId: data.consumer.id
     }
     return JSON.stringify(addHeader(packet))
 }

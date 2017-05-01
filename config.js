@@ -6,7 +6,7 @@ var config = {
     VERSION: '1.0.0',
     MAGIC_NUMBER: 'ZZZ',
     INTERNET_ADDRESS: '127.0.0.1',
-    EVERY_GAME_TIME: 5, //in seconds
+    EVERY_GAME_TIME: 900, //in seconds
 
     GAME_UPDATE_RATE: 60, // unit is Hz
     NET_UPDATE_RATE: 30,
