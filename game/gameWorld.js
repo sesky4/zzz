@@ -36,7 +36,6 @@ gameWorld.prototype.syncPlayers = function () {
 }
 
 gameWorld.prototype.updateLeaderBoard = function () {
-    console.log('haha')
     this.generateLeaderBoard()
     // and remain game time
     this.triggerEvent('leaderBoardUpdate', {
