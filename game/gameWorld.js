@@ -13,20 +13,11 @@ function gameWorld() {
     this.leaderBoard = []
     this.randomEvent = new randomEvent(this)
 
-    setInterval(() => {
-        this.triggerEvent('syncPlayer', {
-            players: this.players
-        })
-    }, 1000 / config.NET_UPDATE_RATE)
+    this.timerId = []
 
-    setInterval(() => {
-        this.generateLeaderBoard()
-        // and remain game time
-        this.triggerEvent('leaderBoardUpdate', {
-            leaderBoard: this.leaderBoard,
-            leftTime: config.EVERY_GAME_TIME - (Date.now() - this.startTime) / 1000
-        })
-    }, 1000 / config.LEADERBOARD_UPDATE_RATE)
+    this.timerId.push(setInterval(this.syncPlayers.bind(this), 1000 / config.NET_UPDATE_RATE))
+
+    this.timerId.push(setInterval(this.updateLeaderBoard.bind(this), 1000 / config.LEADERBOARD_UPDATE_RATE))
 
     this.foodManager.on('foodBirth', (food) => {
         this.triggerEvent('foodBirth', food)
@@ -38,6 +29,22 @@ function gameWorld() {
 
 injector.inject(gameWorld)
 
+gameWorld.prototype.syncPlayers = function () {
+    this.triggerEvent('syncPlayer', {
+        players: this.players
+    })
+}
+
+gameWorld.prototype.updateLeaderBoard = function () {
+    console.log('haha')
+    this.generateLeaderBoard()
+    // and remain game time
+    this.triggerEvent('leaderBoardUpdate', {
+        leaderBoard: this.leaderBoard,
+        leftTime: config.EVERY_GAME_TIME - (Date.now() - this.startTime) / 1000
+    })
+}
+
 gameWorld.prototype.getFoods = function () {
     return this.foodManager.getFoods()
 }
@@ -45,6 +52,7 @@ gameWorld.prototype.getFoods = function () {
 gameWorld.prototype.update = function (dt) {
     if (this.gameOver()) {
         this.triggerEvent('gameOver', this.leaderBoard)
+        this.destroy()
         return
     }
 
@@ -160,5 +168,9 @@ gameWorld.prototype.gameOver = function () {
     return config.EVERY_GAME_TIME - (Date.now() - this.startTime) / 1000 < 0
 }
 
-
+gameWorld.prototype.destroy = function () {
+    for (var i in this.timerId) {
+        clearInterval(this.timerId[i])
+    }
+}
 module.exports = gameWorld

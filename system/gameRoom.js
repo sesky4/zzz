@@ -7,14 +7,16 @@ function gameroom() {
     console.log("create new room")
     this.playerClients = []
     this.gameWorld = new gameworld()
-    this.gameWorld.on('gameOver', () => {
-        this.destroy()
-    })
+
     this.lastGameTick = Date.now()
     this.isRunning = false
 
     this.timerUpdate = null
     this.startGame()
+
+    this.gameWorld.on('gameOver', () => {
+        this.destroy()
+    })
 }
 
 gameroom.prototype.startGame = function () {
